@@ -32,7 +32,7 @@ def getJson(place_id,link):
     data={}
     data['user_id']=0
     data['hyperlink']=link
-    title,desc,image=web_preview(link, timeout=100)
+    title,desc,image=web_preview(link, timeout=1000)
     data['story_title']=title
     data['description']=desc
     data['rating']=0
@@ -67,4 +67,4 @@ for row in tmp: #do iterate for each place
             tmpJson.append(getJson(row[1],link)) #row[1] stands for the place_id
         writeToJson(tmpJson,num)
     except:
-        print("ERROR",num, sys.exc_info()[0].reason)
+        print("ERROR",num, sys.exc_info()[0])

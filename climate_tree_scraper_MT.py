@@ -48,18 +48,18 @@ def lookupStory(row, num):
     placeName = row[0]
     if not placeName:
         return
-    query = getQuery(placeName)  # row[0] stands for the name of place
+    query = getQuery(placeName)
     try:
         tmpJson = []
         for link in search(query, stop=1):
             tmpJson.append(getJson(row[1], link))  # row[1] stands for the place_id
         writeToJson(tmpJson, num)
     except:
-        print("ERROR", num, sys.exc_info()[0].reason)
+        print("ERROR", num, sys.exc_info()[0])
 
 warnings.filterwarnings("ignore")
 
 tmp = parsePlaceCSV()
 print("starting loop")
-Parallel(n_jobs=8)(delayed(lookupStory)(tmp[i], i) for i in range(50000))
+Parallel(n_jobs=8)(delayed(lookupStory)(tmp[i], i) for i in range(len(tmp)))
 
