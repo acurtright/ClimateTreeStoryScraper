@@ -54,13 +54,13 @@ warnings.filterwarnings("ignore")
 
 places = parsePlaceCSV()
 solutions = parseSolutionCSV()
-num = 0
 for place in places:  # do iterate for each place
+    num = 0
     print(place, flush=True)
     placeName = place[0]
     if not placeName:
         continue
-    placeid = place[1];
+    placeid = place[1]
     for sol in solutions:
         query = placeName + " " + sol[2] #sol[2] is solution name
         try:
@@ -70,7 +70,7 @@ for place in places:  # do iterate for each place
                 num += 1
                 try:
                     tmpJson.append(getJson(placeid, link, sol[0], sol[1], sol[2]))
-                    writeToJson(tmpJson,placeid, num)
+                    writeToJson(tmpJson, placeid, num)
                 except:
                     print("Preview Error: ", num, sys.exc_info()[0])
                 sleep(3)
