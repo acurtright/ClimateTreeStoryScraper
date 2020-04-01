@@ -11,7 +11,7 @@ import csv
 from time import sleep
 
 def parsePlaceCSV():
-    with open('seattle_name_id.csv', mode='r', encoding='utf8') as csvfile:
+    with open('similar_to_seattle_by_pop.csv', mode='r', encoding='utf8') as csvfile:
         reader = csv.DictReader(csvfile)
         result = []
         for row in reader:
