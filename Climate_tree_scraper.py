@@ -9,13 +9,15 @@ import json
 import csv
 from time import sleep
 
-def parsePlaceCSV():
-    with open('similar_to_seattle_by_pop.csv', mode='r', encoding='utf8') as csvfile:
+
+def parsePlaceCSV(filename):
+    with open(filename, mode='r', encoding='utf8') as csvfile:
         reader = csv.DictReader(csvfile)
         result = []
         for row in reader:
             result.append([row['place'], row['id']])
     return result
+
 
 def parseSolutionCSV():
     with open('strategy_sector_solution.csv', mode='r', encoding='utf8') as csvfile:
@@ -25,9 +27,11 @@ def parseSolutionCSV():
             result.append([row['Strategy'], row['Sector'], row['Solution']])
     return result
 
+
 def writeToJson(obj, placeid, num):
     with open('./output/' + placeid + "_" + str(num) + ".json", "w+", encoding='utf-8') as f:
         json.dump(obj, f)
+
 
 def getJson(place_id, link, strategy, sector, solution):
     data = {}
@@ -48,10 +52,14 @@ def getJson(place_id, link, strategy, sector, solution):
     data['flagged_by_users'] = []
     return data
 
-
 warnings.filterwarnings("ignore")
 
-places = parsePlaceCSV()
+if len(sys.argv) != 2:
+    print("Usage: python Climate_tree_scraper.py your_csv.csv (csv must have headers: place,id)")
+    sys.exit(1)
+
+filename = sys.argv[1]
+places = parsePlaceCSV(filename)
 solutions = parseSolutionCSV()
 mediaTypes = [" .pdf", " video", " news", " government", " chart map"]
 for place in places:  # do iterate for each place
@@ -63,7 +71,7 @@ for place in places:  # do iterate for each place
     placeid = place[1]
     for sol in solutions:
         solutionName = sol[2]
-        query = placeName + " climate change " + solutionName  #sol[2] is solution name
+        query = placeName + " climate change " + solutionName  # sol[2] is solution name
         try:
             for link in search(query, num=1, stop=1):
                 print(link, flush=True)
