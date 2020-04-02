@@ -1,67 +1,79 @@
 import time
 from datetime import datetime
-import psycopg2
 from googlesearch import search
 from webpreview import web_preview
 import warnings
 import sys
 import random
 import json
+import csv
+from time import sleep
 
-def getNameTable():
-    host="localhost"
-    dbname="climateTree"
-    user="postgres"
-    password="700813"
-    conn_str='host={0} user={1} dbname={2} password={3}'.format(host, user, dbname, password)
-    conn=psycopg2.connect(conn_str)
-    cur=conn.cursor()
-    cur.execute('select "NAME".name,"PLACE_INFO".place_id from "NAME_PLACE" inner join "PLACE_INFO" on "NAME_PLACE".place_id = "PLACE_INFO".place_id'
-    ' inner join "NAME" on "NAME".name_id = "NAME_PLACE".name_id order by "PLACE_INFO".population desc')
-    return cur.fetchall()
+def parsePlaceCSV():
+    with open('similar_to_seattle_by_pop.csv', mode='r', encoding='utf8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        result = []
+        for row in reader:
+            result.append([row['place'], row['id']])
+    return result
 
-array=[]
+def parseSolutionCSV():
+    with open('strategy_sector_solution.csv', mode='r', encoding='utf8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        result = []
+        for row in reader:
+            result.append([row['Strategy'], row['Sector'], row['Solution']])
+    return result
 
-def getQuery(name,tup):
-    return name+" climate change"
-   
-def writeToJson(obj,num):
-    with open('../climateChange/json'+str(num)+".json","w+",encoding='utf-8') as f:
-        json.dump(obj,f)
+def writeToJson(obj, placeid, num):
+    with open('./output/' + placeid + "_" + str(num) + ".json", "w+", encoding='utf-8') as f:
+        json.dump(obj, f)
 
-def getJson(name,tup,place_id,link):
-    data={}
-    data['user_id']=0
-    data['hyperlink']=link
-    title,desc,image=web_preview(link, timeout=1000)
-    data['story_title']=title
-    data['description']=desc
-    data['rating']=0
-    data['place_ids']=[place_id]
-    data['media_type']='article'
-    data['date']=datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f%z')
-    data['solution']=[]
-    data['sector']=[]
-    data['comments']=[]
-    data['liked_by_users']=[]
+def getJson(place_id, link, strategy, sector, solution):
+    data = {}
+    data['user_id'] = 0
+    data['hyperlink'] = link
+    title, desc, image = web_preview(link, timeout=10)
+    data['story_title'] = title
+    data['description'] = desc
+    data['rating'] = 0
+    data['place_ids'] = [place_id]
+    data['media_type'] = 'article'
+    data['date'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f%z')
+    data['solution'] = [solution]
+    data['sector'] = [sector]
+    data['strategy'] = [strategy]
+    data['comments'] = []
+    data['liked_by_users'] = []
+    data['flagged_by_users'] = []
     return data
 
+
 warnings.filterwarnings("ignore")
-tmp=getNameTable()
-# to search
-num=0
-for row in tmp : #do iterate for each place
-    num+=1
-    print(num)
-    if num>50000:
-        break
-    tup=[]
-   
-    query=getQuery(row[0],tup) #row[0] stands for the name of place
-    try:
-        tmpJson=[]
-        for j in search(query,stop=1):
-            tmpJson.append(getJson(row[0],tup,row[1],j)) #row[1] stands for the place_id
-        writeToJson(tmpJson,num)
-    except:
-        print("ERROR",num, sys.exc_info()[0])
+
+places = parsePlaceCSV()
+solutions = parseSolutionCSV()
+mediaTypes = [" .pdf", " video", " news", " government", " chart map"]
+for place in places:  # do iterate for each place
+    num = 0
+    print(place, flush=True)
+    placeName = place[0]
+    if not placeName:
+        continue
+    placeid = place[1]
+    for sol in solutions:
+        solutionName = sol[2]
+        query = placeName + " climate change " + solutionName  #sol[2] is solution name
+        try:
+            for link in search(query, num=1, stop=1):
+                print(link, flush=True)
+                tmpJson = []
+                num += 1
+                try:
+                    tmpJson.append(getJson(placeid, link, sol[0], sol[1], solutionName))
+                    writeToJson(tmpJson, placeid, num)
+                except:
+                    print("Preview Error: ", num, sys.exc_info()[0])
+                sleep(3)
+        except:
+            print("Search Error: ", num, sys.exc_info()[0])
