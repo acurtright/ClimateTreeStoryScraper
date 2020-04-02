@@ -1,6 +1,5 @@
 import time
 from datetime import datetime
-# import psycopg2
 from googlesearch import search
 from webpreview import web_preview
 import warnings
@@ -34,7 +33,7 @@ def getJson(place_id, link, strategy, sector, solution):
     data = {}
     data['user_id'] = 0
     data['hyperlink'] = link
-    title, desc, image = web_preview(link, timeout=1000)
+    title, desc, image = web_preview(link, timeout=10)
     data['story_title'] = title
     data['description'] = desc
     data['rating'] = 0
@@ -54,6 +53,7 @@ warnings.filterwarnings("ignore")
 
 places = parsePlaceCSV()
 solutions = parseSolutionCSV()
+mediaTypes = [" .pdf", " video", " news", " government", " chart map"]
 for place in places:  # do iterate for each place
     num = 0
     print(place, flush=True)
@@ -62,14 +62,15 @@ for place in places:  # do iterate for each place
         continue
     placeid = place[1]
     for sol in solutions:
-        query = placeName + " " + sol[2] #sol[2] is solution name
+        solutionName = sol[2]
+        query = placeName + " climate change " + solutionName  #sol[2] is solution name
         try:
             for link in search(query, num=1, stop=1):
                 print(link, flush=True)
                 tmpJson = []
                 num += 1
                 try:
-                    tmpJson.append(getJson(placeid, link, sol[0], sol[1], sol[2]))
+                    tmpJson.append(getJson(placeid, link, sol[0], sol[1], solutionName))
                     writeToJson(tmpJson, placeid, num)
                 except:
                     print("Preview Error: ", num, sys.exc_info()[0])
