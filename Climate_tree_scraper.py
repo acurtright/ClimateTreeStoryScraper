@@ -7,7 +7,7 @@ import sys
 import random
 import json
 import csv
-from time import sleep
+
 
 
 def parsePlaceCSV(filename):
@@ -33,11 +33,15 @@ def writeToJson(obj, placeid, num):
         json.dump(obj, f)
 
 
-def getJson(place_id, link, strategy, sector, solution):
+def getJson(place_name, place_id, link, strategy, sector, solution):
     data = {}
     data['user_id'] = 0
     data['hyperlink'] = link
-    title, desc, image = web_preview(link, timeout=10)
+    if "pdf" in link:
+        title = place_name + " " + solution
+        desc = ""
+    else:
+        title, desc, image = web_preview(link, timeout=10)
     data['story_title'] = title
     data['description'] = desc
     data['rating'] = 0
@@ -62,7 +66,7 @@ filename = sys.argv[1]
 places = parsePlaceCSV(filename)
 solutions = parseSolutionCSV()
 mediaTypes = [" .pdf", " video", " news", " government", " chart map"]
-for place in places:  # do iterate for each place
+for place in places:
     num = 0
     print(place, flush=True)
     placeName = place[0]
@@ -71,17 +75,17 @@ for place in places:  # do iterate for each place
     placeid = place[1]
     for sol in solutions:
         solutionName = sol[2]
-        query = placeName + " climate change " + solutionName  # sol[2] is solution name
+        query = placeName + " climate change " + solutionName
         try:
             for link in search(query, num=1, stop=1):
                 print(link, flush=True)
                 tmpJson = []
                 num += 1
                 try:
-                    tmpJson.append(getJson(placeid, link, sol[0], sol[1], solutionName))
+                    tmpJson.append(getJson(placeName, placeid, link, sol[0], sol[1], solutionName))
                     writeToJson(tmpJson, placeid, num)
                 except:
                     print("Preview Error: ", num, sys.exc_info()[0])
-                sleep(3)
+                time.sleep(3)
         except:
             print("Search Error: ", num, sys.exc_info()[0])
