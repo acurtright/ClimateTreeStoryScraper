@@ -7,6 +7,7 @@ import sys
 import random
 import json
 import csv
+import os
 
 
 
@@ -65,7 +66,8 @@ if len(sys.argv) != 2:
 filename = sys.argv[1]
 places = parsePlaceCSV(filename)
 solutions = parseSolutionCSV()
-mediaTypes = [" .pdf", " video", " news", " government", " chart map"]
+if not os.path.exists('./output'):
+    os.makedirs('output')
 for place in places:
     num = 0
     print(place, flush=True)
