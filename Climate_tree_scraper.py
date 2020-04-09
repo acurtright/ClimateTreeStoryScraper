@@ -8,8 +8,8 @@ import random
 import json
 import csv
 import os
-
-
+from urllib.error import HTTPError
+from urllib.error import URLError
 
 def parsePlaceCSV(filename):
     with open(filename, mode='r', encoding='utf8') as csvfile:
@@ -77,7 +77,7 @@ for place in places:
     placeid = place[1]
     for sol in solutions:
         solutionName = sol[2]
-        query = placeName + " climate change " + solutionName
+        query = "\"" + placeName + "\"" + " climate change " + solutionName
         try:
             for link in search(query, num=1, stop=1):
                 print(link, flush=True)
@@ -89,5 +89,9 @@ for place in places:
                 except:
                     print("Preview Error: ", num, sys.exc_info()[0])
                 time.sleep(3)
+        except URLError as e:
+            print("URLError" + str(e.reason))
+        except HTTPError as e:
+            print("HTTPError" + str(e.code) + str(e.reason))
         except:
-            print("Search Error: ", num, sys.exc_info()[0])
+            print("Search Error: ", sys.exc_info()[0])
